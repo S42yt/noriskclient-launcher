@@ -115,6 +115,10 @@ impl EventState {
         state
     }
 
+    pub fn app_handle(&self) -> Option<Arc<tauri::AppHandle>> {
+        self.app.clone()
+    }
+
     pub async fn emit(&self, payload: EventPayload) -> Result<()> {
         // Track the event if it's a new one
         if !self.active_events.contains_key(&payload.event_id) {

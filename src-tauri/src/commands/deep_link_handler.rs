@@ -1,8 +1,11 @@
+use crate::commands::profile_command::{spawn_temp_profile, TempLaunchArgs};
 use crate::error::AppError;
 use crate::minecraft::api::norisk_api::NoRiskApi;
 use crate::state::state_manager::State;
-use crate::utils::deep_link_utils::AuthBridgeResult;
-use log::info;
+use crate::utils::deep_link_utils::{AuthBridgeResult, TestLaunchRequest};
+use crate::utils::testing_session;
+use log::{info, warn};
+use tauri::Manager;
 
 /// Tauri command called by the frontend after user confirms the auth bridge request.
 #[tauri::command]
@@ -28,6 +31,47 @@ pub async fn confirm_auth_bridge(session_id: String) -> Result<AuthBridgeResult,
         .get_token_for_mode(is_experimental)?;
 
     NoRiskApi::confirm_auth_bridge(&token, &session_id, is_experimental).await?;
+
+    Ok(AuthBridgeResult {
+        success: true,
+        message: "success".to_string(),
+    })
+}
+
+#[tauri::command]
+pub async fn confirm_test_launch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    request: TestLaunchRequest,
+) -> Result<AuthBridgeResult, crate::error::CommandError> {
+    let Some(return_url) = testing_session::sanitize_return_url(&request.return_url) else {
+        return Err(AppError::Other("Invalid return URL".to_string()).into());
+    };
+
+    info!(
+        "[DeepLink] Starting test instance for issue {} ({} {} pack={:?})",
+        request.issue_id, request.game_version, request.loader, request.pack
+    );
+
+    let profile_id = spawn_temp_profile(TempLaunchArgs {
+        game_version: request.game_version.clone(),
+        loader: request.loader.clone(),
+        loader_version: request.loader_version.clone(),
+        pack: request.pack.clone(),
+        name: Some(format!("Test: {}", request.title)),
+        quick_play_singleplayer: None,
+        quick_play_multiplayer: None,
+        local_mods: Vec::new(),
+        account: None,
+    })
+    .await?;
+
+    testing_session::register(profile_id, return_url);
+
+    if let Some(window) = app.get_webview_window("main") {
+        if let Err(e) = window.hide() {
+            warn!("[DeepLink] Could not hide main window for test session: {}", e);
+        }
+    }
 
     Ok(AuthBridgeResult {
         success: true,

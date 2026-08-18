@@ -782,6 +782,7 @@ async fn main() {
             add_message_reaction,
             remove_message_reaction,
             commands::deep_link_handler::confirm_auth_bridge,
+            commands::deep_link_handler::confirm_test_launch,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

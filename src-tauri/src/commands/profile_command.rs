@@ -2974,6 +2974,10 @@ pub struct TempLaunchArgs {
 /// trash's own 30-day retention then deletes it for good.
 #[tauri::command]
 pub async fn launch_temp_profile(args: TempLaunchArgs) -> Result<(), CommandError> {
+    spawn_temp_profile(args).await.map(|_| ())
+}
+
+pub async fn spawn_temp_profile(args: TempLaunchArgs) -> Result<Uuid, CommandError> {
     let state = State::get().await?;
     let id = Uuid::new_v4();
     let short: String = id.to_string().chars().take(8).collect();
@@ -3084,5 +3088,5 @@ pub async fn launch_temp_profile(args: TempLaunchArgs) -> Result<(), CommandErro
         }
     });
 
-    Ok(())
+    Ok(id)
 }

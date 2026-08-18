@@ -1037,6 +1037,29 @@ impl ProcessManager {
                         e
                     );
                 }
+
+                if let Some(return_url) = crate::utils::testing_session::take(&profile_id) {
+                    if let Some(app) = state.event_state.app_handle() {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                        }
+                        use tauri_plugin_opener::OpenerExt;
+                        match app.opener().open_url(return_url.clone(), None::<&str>) {
+                            Ok(_) => log::info!(
+                                "[Testing] Test session for profile {} finished, opened {}",
+                                profile_id,
+                                return_url
+                            ),
+                            Err(e) => log::error!(
+                                "[Testing] Failed to open return URL {}: {}",
+                                return_url,
+                                e
+                            ),
+                        }
+                    }
+                }
             } else {
                 log::error!(
                     "Monitor task for process {} failed to get global state to emit exit event.",

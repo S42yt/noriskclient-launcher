@@ -46,5 +46,6 @@ pub mod http_client; // NrcRequest: fluent request builder over HTTP_CLIENT
 // pub mod network_utils;
 pub mod string_utils;
 pub mod deep_link_utils;
+pub mod testing_session;
 
 // Mache server_ping verfügbar

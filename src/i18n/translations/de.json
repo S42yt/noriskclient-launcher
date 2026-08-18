@@ -2102,6 +2102,13 @@
   "deep_link.auth.error": "Website-Authentifizierung fehlgeschlagen.",
   "deep_link.auth.not_logged_in": "Du musst eingeloggt sein, um die Website-Authentifizierung zu nutzen.",
 
+  "deep_link.test.title": "Testinstanz starten",
+  "deep_link.test.description": "Die NoRisk Website möchte eine Testinstanz für \"{{title}}\" als {{username}} starten. Nach dem Schließen von Minecraft öffnet sich das Feedback-Formular.",
+  "deep_link.test.confirm": "Test starten",
+  "deep_link.test.success": "Testinstanz wird gestartet!",
+  "deep_link.test.error": "Testinstanz konnte nicht gestartet werden.",
+  "deep_link.test.not_logged_in": "Du musst eingeloggt sein, um eine Testinstanz zu starten.",
+
   "errorBoundary.title": "Etwas ist schiefgelaufen",
   "errorBoundary.titleRoute": "Fehler {{status}}",
   "errorBoundary.unknown": "Beim Rendern dieser Seite ist ein unbekannter Fehler aufgetreten.",

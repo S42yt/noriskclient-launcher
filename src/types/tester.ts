@@ -63,6 +63,17 @@ export interface NeedsTestingResponse {
 export type BugVote = "valid" | "invalid";
 export type ReviewVote = "works_perfectly" | "needs_changes" | "does_not_work";
 
+export interface TestLaunchRequest {
+  issue_id: string;
+  title: string;
+  username: string;
+  game_version: string;
+  loader: string;
+  loader_version?: string | null;
+  pack?: string | null;
+  return_url: string;
+}
+
 export interface SubmitTestVoteResponse {
   ok: boolean;
   kind: PendingKind;

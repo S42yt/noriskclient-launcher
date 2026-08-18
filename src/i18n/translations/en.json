@@ -2120,6 +2120,13 @@
   "deep_link.auth.error": "Website authentication failed.",
   "deep_link.auth.not_logged_in": "You must be logged in to use website authentication.",
 
+  "deep_link.test.title": "Start test instance",
+  "deep_link.test.description": "The NoRisk website wants to start a test instance for \"{{title}}\" as {{username}}. Minecraft closes back to the feedback form when you are done.",
+  "deep_link.test.confirm": "Start test",
+  "deep_link.test.success": "Test instance is starting!",
+  "deep_link.test.error": "Could not start the test instance.",
+  "deep_link.test.not_logged_in": "You must be logged in to start a test instance.",
+
   "errorBoundary.title": "Something went wrong",
   "errorBoundary.titleRoute": "Error {{status}}",
   "errorBoundary.unknown": "An unknown error occurred while rendering this page.",

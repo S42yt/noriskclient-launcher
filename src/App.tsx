@@ -19,6 +19,7 @@ import {
   EventType as FrontendEventType,
   type MinecraftProcessExitedPayload,
 } from "./types/events";
+import type { TestLaunchRequest } from "./types/tester";
 import { GlobalCrashReportModal } from "./components/modals/GlobalCrashReportModal";
 import { ImportPackConfirmModal } from "./components/modals/ImportPackConfirmModal";
 import { DragDropOverlay } from "./components/ui/DragDropOverlay";
@@ -285,6 +286,88 @@ export function App() {
             console.error("[App.tsx] Auth bridge confirm failed:", message);
             toast.error(t("deep_link.auth.error"));
           }
+        }
+      },
+    );
+
+    return () => {
+      unlisten.then((f) => f());
+      unlistenResult.then((f) => f());
+    };
+  }, [showModal, hideModal, t]);
+
+  useEffect(() => {
+    const unlisten = listen<TestLaunchRequest>(
+      "deep-link-test-request",
+      (event) => {
+        const request = event.payload;
+
+        showModal(
+          "deep-link-test",
+          <Modal
+            title={t("deep_link.test.title")}
+            onClose={() => hideModal("deep-link-test")}
+            width="sm"
+            footer={
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => hideModal("deep-link-test")}
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={async () => {
+                    hideModal("deep-link-test");
+                    try {
+                      const result = await invoke<{
+                        success: boolean;
+                        message: string;
+                      }>("confirm_test_launch", { request });
+                      if (result.success) {
+                        toast.success(t("deep_link.test.success"));
+                      } else {
+                        toast.error(t("deep_link.test.error"));
+                      }
+                    } catch (e) {
+                      console.error("[App.tsx] Test launch failed:", e);
+                      toast.error(t("deep_link.test.error"));
+                    }
+                  }}
+                >
+                  {t("deep_link.test.confirm")}
+                </Button>
+              </div>
+            }
+          >
+            <div className="p-6 text-white/80 font-minecraft space-y-2">
+              <p>
+                {t("deep_link.test.description", {
+                  title: request.title,
+                  username: request.username,
+                })}
+              </p>
+              <p className="text-white/50">
+                {request.game_version} {request.loader}
+                {request.pack ? ` · ${request.pack}` : ""}
+              </p>
+            </div>
+          </Modal>,
+        );
+      },
+    );
+
+    const unlistenResult = listen<{ success: boolean; message: string }>(
+      "deep-link-test-result",
+      (event) => {
+        const { success, message } = event.payload;
+        if (success) return;
+        if (message === "not_logged_in") {
+          toast.error(t("deep_link.test.not_logged_in"));
+        } else {
+          console.error("[App.tsx] Test launch request failed:", message);
+          toast.error(t("deep_link.test.error"));
         }
       },
     );
