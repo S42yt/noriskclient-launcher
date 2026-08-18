@@ -1040,6 +1040,11 @@ impl ProcessManager {
 
                 if let Some(return_url) = crate::utils::testing_session::take(&profile_id) {
                     if let Some(app) = state.event_state.app_handle() {
+                        if let Some(session_window) = app.get_webview_window(
+                            crate::utils::testing_session::SESSION_WINDOW_LABEL,
+                        ) {
+                            let _ = session_window.close();
+                        }
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
                             let _ = window.unminimize();

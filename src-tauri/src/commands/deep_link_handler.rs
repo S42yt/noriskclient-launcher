@@ -67,6 +67,30 @@ pub async fn confirm_test_launch<R: tauri::Runtime>(
 
     testing_session::register(profile_id, return_url);
 
+    let query = format!(
+        "?title={}&pack={}&version={}",
+        urlencoding::encode(&request.title),
+        urlencoding::encode(request.pack.as_deref().unwrap_or("")),
+        urlencoding::encode(&request.game_version),
+    );
+
+    if let Err(e) = tauri::WebviewWindowBuilder::new(
+        &app,
+        testing_session::SESSION_WINDOW_LABEL,
+        tauri::WebviewUrl::App(format!("test-session.html{}", query).into()),
+    )
+    .title("NoRisk Test Session")
+    .inner_size(420.0, 210.0)
+    .resizable(false)
+    .decorations(false)
+    .always_on_top(true)
+    .skip_taskbar(false)
+    .visible(false)
+    .build()
+    {
+        warn!("[DeepLink] Could not open the test session window: {}", e);
+    }
+
     if let Some(window) = app.get_webview_window("main") {
         if let Err(e) = window.hide() {
             warn!("[DeepLink] Could not hide main window for test session: {}", e);

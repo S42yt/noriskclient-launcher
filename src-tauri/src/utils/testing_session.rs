@@ -5,6 +5,8 @@ use uuid::Uuid;
 
 const ALLOWED_RETURN_HOSTS: [&str; 3] = ["norisk.gg", "www.norisk.gg", "staging.norisk.gg"];
 
+pub const SESSION_WINDOW_LABEL: &str = "test_session";
+
 static SESSIONS: OnceLock<DashMap<Uuid, String>> = OnceLock::new();
 
 fn sessions() -> &'static DashMap<Uuid, String> {
@@ -13,10 +15,18 @@ fn sessions() -> &'static DashMap<Uuid, String> {
 
 pub fn sanitize_return_url(raw: &str) -> Option<String> {
     let parsed = Url::parse(raw).ok()?;
+    let host = parsed.host_str()?;
+
+    if cfg!(debug_assertions)
+        && parsed.scheme() == "http"
+        && (host == "localhost" || host == "127.0.0.1")
+    {
+        return Some(parsed.to_string());
+    }
+
     if parsed.scheme() != "https" {
         return None;
     }
-    let host = parsed.host_str()?;
     if !ALLOWED_RETURN_HOSTS.contains(&host) {
         return None;
     }
