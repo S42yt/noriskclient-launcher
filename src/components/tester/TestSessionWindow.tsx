@@ -16,11 +16,31 @@ type Stage = "preparing" | "running" | "finished" | "failed";
 
 type StepId = "install" | "pack" | "launch" | "play";
 
-const STEPS: { id: StepId; label: string; icon: string }[] = [
-  { id: "install", label: "Preparing game files", icon: "solar:download-square-bold" },
-  { id: "pack", label: "Installing the pack", icon: "solar:box-bold" },
-  { id: "launch", label: "Launching Minecraft", icon: "solar:rocket-bold" },
-  { id: "play", label: "Testing", icon: "solar:gamepad-bold" },
+const STEPS: { id: StepId; label: string; hint: string; icon: string }[] = [
+  {
+    id: "install",
+    label: "Preparing game files",
+    hint: "Java, libraries and assets",
+    icon: "solar:download-square-bold",
+  },
+  {
+    id: "pack",
+    label: "Installing the pack",
+    hint: "Mods and NoRisk assets",
+    icon: "solar:box-bold",
+  },
+  {
+    id: "launch",
+    label: "Launching Minecraft",
+    hint: "Starting the test instance",
+    icon: "solar:rocket-bold",
+  },
+  {
+    id: "play",
+    label: "Testing",
+    hint: "Close the game when you are done",
+    icon: "solar:gamepad-bold",
+  },
 ];
 
 const EVENT_STEPS: Partial<Record<EventType, { step: StepId; label: string }>> = {
@@ -63,10 +83,10 @@ function BorderGlow({ color }: { color: string }) {
   const vertical = `linear-gradient(to bottom, transparent, ${color}70, transparent)`;
   return (
     <>
-      <div className="absolute top-0 left-0 right-0 h-[2px] pointer-events-none z-20" style={{ background: horizontal }} />
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] pointer-events-none z-20" style={{ background: horizontal }} />
-      <div className="absolute top-0 bottom-0 left-0 w-[2px] pointer-events-none z-20" style={{ background: vertical }} />
-      <div className="absolute top-0 bottom-0 right-0 w-[2px] pointer-events-none z-20" style={{ background: vertical }} />
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 h-[2px]" style={{ background: horizontal }} />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 h-[2px]" style={{ background: horizontal }} />
+      <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-20 w-[2px]" style={{ background: vertical }} />
+      <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-20 w-[2px]" style={{ background: vertical }} />
     </>
   );
 }
@@ -155,13 +175,15 @@ export function TestSessionWindow() {
   const activeIndex = STEPS.findIndex((step) => step.id === activeStep);
   const percent =
     progress != null ? Math.max(0, Math.min(100, Math.round(progress * 100))) : null;
+  const failed = stage === "failed";
+  const barColor = failed ? "#ef4444" : accent;
 
   return (
     <div
-      className="relative flex h-screen w-screen flex-col overflow-hidden border-2 text-white backdrop-blur-lg"
+      className="relative box-border flex h-screen w-screen flex-col overflow-hidden border-2 text-white"
       style={{
         backgroundColor: background,
-        backgroundImage: `linear-gradient(to bottom right, ${background}, rgba(0,0,0,0.9))`,
+        backgroundImage: `linear-gradient(to bottom right, ${background}, rgba(0,0,0,0.92))`,
         borderColor: `${accent}30`,
         boxShadow: `0 0 15px ${accent}30, inset 0 0 10px ${accent}20`,
       }}
@@ -169,12 +191,12 @@ export function TestSessionWindow() {
       <BorderGlow color={accent} />
 
       <div
-        className="relative flex h-11 shrink-0 select-none items-center justify-between border-b border-white/5 bg-black/40 px-4"
+        className="relative flex h-12 shrink-0 select-none items-center justify-between border-b border-white/5 bg-black/40 px-4"
         data-tauri-drag-region
       >
         <div className="pointer-events-none flex h-full flex-1 items-center gap-3" data-tauri-drag-region>
-          <Icon icon="solar:test-tube-bold" className="h-4 w-4" style={{ color: accent }} />
-          <span className="font-minecraft text-xs tracking-wider" style={{ color: accent }}>
+          <Icon icon="solar:test-tube-bold" className="h-5 w-5" style={{ color: accent }} />
+          <span className="font-minecraft text-sm tracking-wider" style={{ color: accent }}>
             Test Session
           </span>
         </div>
@@ -182,29 +204,29 @@ export function TestSessionWindow() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => appWindow.hide()}
-            className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded transition-colors hover:bg-white/10"
             title="Hide"
           >
-            <Icon icon="mdi:minus" className="h-4 w-4 text-white/70" />
+            <Icon icon="mdi:minus" className="h-5 w-5 text-white/70" />
           </button>
           <button
             onClick={() => appWindow.close()}
-            className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-red-500/80"
+            className="flex h-9 w-9 items-center justify-center rounded transition-colors hover:bg-red-500/80"
             title="Close"
           >
-            <Icon icon="mdi:close" className="h-4 w-4 text-white/70" />
+            <Icon icon="mdi:close" className="h-5 w-5 text-white/70" />
           </button>
         </div>
       </div>
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 p-4">
-        <div className="min-w-0">
-          <p className="truncate font-minecraft text-sm tracking-wide text-white">{title}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-5 overflow-hidden p-6">
+        <div className="min-w-0 shrink-0">
+          <p className="truncate font-minecraft text-lg tracking-wide text-white">{title}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             {[version, pack].filter(Boolean).map((chip) => (
               <span
                 key={chip}
-                className="rounded px-2 py-0.5 font-minecraft text-[10px] tracking-wider"
+                className="rounded px-2.5 py-1 font-minecraft text-xs tracking-wider"
                 style={{
                   background: `${accent}25`,
                   color: accent,
@@ -217,69 +239,82 @@ export function TestSessionWindow() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-1">
+        <div className="custom-scrollbar -mr-1 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1">
           {STEPS.map((step, index) => {
-            const done = index < activeIndex || stage === "finished";
+            const done = index < activeIndex || (stage === "finished" && index <= activeIndex);
             const active = index === activeIndex && stage !== "finished";
             return (
-              <div key={step.id} className="flex flex-1 flex-col items-center gap-1.5">
-                <div className="flex w-full items-center gap-1">
-                  <div
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors"
+              <div
+                key={step.id}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
+                style={{
+                  background: active ? `${accent}12` : "transparent",
+                  border: `1px solid ${active ? `${accent}35` : "transparent"}`,
+                }}
+              >
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors"
+                  style={{
+                    borderColor: done || active ? `${accent}80` : "rgba(255,255,255,0.12)",
+                    background: active ? `${accent}25` : done ? `${accent}15` : "transparent",
+                    color: done || active ? accent : "rgba(255,255,255,0.3)",
+                  }}
+                >
+                  <Icon
+                    icon={done ? "solar:check-circle-bold" : step.icon}
+                    className={`h-5 w-5 ${active && !failed ? "animate-pulse" : ""}`}
+                  />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="truncate text-sm font-medium"
                     style={{
-                      borderColor: done || active ? `${accent}80` : "rgba(255,255,255,0.12)",
-                      background: active ? `${accent}25` : done ? `${accent}15` : "transparent",
-                      color: done || active ? accent : "rgba(255,255,255,0.35)",
+                      color: done || active ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.4)",
                     }}
                   >
-                    <Icon
-                      icon={done ? "solar:check-circle-bold" : step.icon}
-                      className={`h-4 w-4 ${active ? "animate-pulse" : ""}`}
-                    />
-                  </div>
-                  {index < STEPS.length - 1 && (
-                    <div
-                      className="h-[2px] flex-1 rounded"
-                      style={{
-                        background: done ? `${accent}70` : "rgba(255,255,255,0.08)",
-                      }}
-                    />
-                  )}
+                    {step.label}
+                  </p>
+                  <p className="truncate text-xs text-white/35">
+                    {active ? detail : step.hint}
+                  </p>
                 </div>
-                <span
-                  className="w-full text-center text-[9px] leading-tight tracking-wide"
-                  style={{ color: done || active ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.3)" }}
-                >
-                  {step.label}
-                </span>
+
+                {active && percent != null && (
+                  <span
+                    className="shrink-0 font-minecraft text-sm tracking-wider"
+                    style={{ color: accent }}
+                  >
+                    {percent}%
+                  </span>
+                )}
               </div>
             );
           })}
         </div>
 
-        <div className="mt-auto space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <p className="min-w-0 flex-1 truncate text-xs text-white/70">{detail}</p>
-            {percent != null && (
-              <span className="font-minecraft text-[10px] tracking-wider" style={{ color: accent }}>
-                {percent}%
-              </span>
-            )}
-          </div>
-
-          <div className="h-1.5 w-full overflow-hidden rounded bg-white/10">
+        <div className="shrink-0 space-y-2">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className={percent == null ? "h-full w-1/3 animate-pulse rounded" : "h-full rounded transition-all"}
+              className={
+                percent == null && !failed && stage !== "finished"
+                  ? "h-full w-1/3 animate-pulse rounded-full"
+                  : "h-full rounded-full transition-all duration-300"
+              }
               style={{
-                background: stage === "failed" ? "#ef4444" : accent,
-                boxShadow: `0 0 10px ${accent}70`,
-                ...(percent == null ? {} : { width: `${percent}%` }),
+                background: barColor,
+                boxShadow: `0 0 12px ${barColor}70`,
+                ...(percent == null
+                  ? stage === "finished"
+                    ? { width: "100%" }
+                    : {}
+                  : { width: `${percent}%` }),
               }}
             />
           </div>
 
-          <p className="text-[10px] text-white/35">
-            {stage === "finished" || stage === "failed"
+          <p className="text-xs text-white/40">
+            {stage === "finished" || failed
               ? "You can close this window."
               : "The launcher stays in the background while you test."}
           </p>

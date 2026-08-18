@@ -80,8 +80,9 @@ pub async fn confirm_test_launch<R: tauri::Runtime>(
         tauri::WebviewUrl::App(format!("test-session.html{}", query).into()),
     )
     .title("NoRisk Test Session")
-    .inner_size(460.0, 280.0)
-    .resizable(false)
+    .inner_size(560.0, 460.0)
+    .min_inner_size(480.0, 400.0)
+    .resizable(true)
     .decorations(false)
     .always_on_top(true)
     .skip_taskbar(false)
